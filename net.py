@@ -18,10 +18,11 @@ class VGG(chainer.Chain):
             b3_1 = L.BatchNormalization(64),
             c3_2 = L.Convolution2D(64, 64, ksize=3, stride=1, pad=1),
             b3_2 = L.BatchNormalization(64),
-            f = L.Linear(6*6*64,10)
+            f1 = L.Linear(6*6*64,100)
+            f2 = L.Linear(100,10)
         )
 
-    def __call__(self, x):
+    def __call__(self, x, train):
         h = self.b1_1(F.elu(self.c1_1(x)))
         h = self.b1_2(F.elu(self.c1_2(h)))
         h = F.max_pooling_2d(h,2,stride=2)
@@ -31,4 +32,5 @@ class VGG(chainer.Chain):
         h = self.b3_1(F.elu(self.c3_1(h)))
         h = self.b3_2(F.elu(self.c3_2(h)))
         h = F.max_pooling_2d(h,2,stride=2)
-        return self.f(h)
+        h = F.dropout(F.elu(self.f1(h)))
+        return self.f2(h)

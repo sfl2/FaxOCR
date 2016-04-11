@@ -85,7 +85,7 @@ for epoch in range(1, n_epoch+1):
         sum_accuracy += float(model.accuracy.data) * len(t.data)
 
     print('test  mean loss={}, accuracy={}/{}'.format(
-        sum_loss / N_test, sum_accuracy , N_test))
+        sum_loss / N_test, math.floor(sum_accuracy) , N_test))
 
 
 

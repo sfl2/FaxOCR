@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import chainer
-
 import chainer.links as L
 from chainer import optimizers
 from chainer import serializers
@@ -9,8 +8,14 @@ from chainer import serializers
 import six
 import os
 import sys
-
+import math
+from sklearn.decomposition import PCA
 import net
+
+#TODO normalize input
+#TODO resnet,nin
+
+
 
 xp = np
 
@@ -24,7 +29,7 @@ N_test = test_size
 train_path = "./data/numbers-proceed"
 test_path = "./data/mustread-proceed"
 
-def getData(path, size, l):
+def getPicData(path, size, l):
     data = np.zeros((size, 1, l, l), dtype="float32")
     label = np.zeros((size), dtype="int32")
     for root, _,files in os.walk(path):
@@ -44,10 +49,28 @@ def getData(path, size, l):
     return data, label
 
 
+def load_mnist(images, labels, num):
+    data = np.zeros(num * dim, dtype=np.uint8).reshape((num, dim))
+    target = np.zeros(num, dtype=np.uint8).reshape((num, ))
+
+    with gzip.open(images, 'rb') as f_images,\
+            gzip.open(labels, 'rb') as f_labels:
+        f_images.read(16)
+        f_labels.read(8)
+        for i in six.moves.range(num):
+            target[i] = ord(f_labels.read(1))
+            for j in six.moves.range(dim):
+                data[i, j] = ord(f_images.read(1))
+
+    return data, target
+
 x_train, y_train = getData(train_path, train_size, img_size)
 x_test, y_test = getData(test_path, test_size, img_size)
 
-print y_train
+"""
+x_train = pca.transform(x_train)
+x_test = pca.transform(x_test)
+"""
 
 batchsize = 100
 n_epoch = 20
@@ -61,6 +84,7 @@ for epoch in range(1, n_epoch+1):
     perm = np.random.permutation(N)
     sum_accuracy = 0
     sum_loss = 0
+    model.predictor.train = True
     for i in range(0, N, batchsize):
         arr = np.asarray(x_train[perm[i:i+batchsize]])
         x = chainer.Variable(arr)
@@ -80,6 +104,7 @@ for epoch in range(1, n_epoch+1):
                              volatile='on')
         t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]),
                              volatile='on')
+        model.predictor.train = False
         loss = model(x, t)
         sum_loss += float(loss.data) * len(t.data)
         sum_accuracy += float(model.accuracy.data) * len(t.data)

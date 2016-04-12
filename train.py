@@ -11,6 +11,7 @@ import sys
 import math
 from sklearn.decomposition import PCA
 import net
+import idx2numpy as i2n
 
 #TODO normalize input
 #TODO resnet,nin
@@ -29,43 +30,27 @@ N_test = test_size
 train_path = "./data/numbers-proceed"
 test_path = "./data/mustread-proceed"
 
-def getPicData(path, size, l):
-    data = np.zeros((size, 1, l, l), dtype="float32")
-    label = np.zeros((size), dtype="int32")
-    for root, _,files in os.walk(path):
-        i = 0
-        for f in files:
-            pic = cv2.imread(root+"/"+f)
-            pic = cv2.cvtColor(pic, cv2.COLOR_BGR2GRAY)
-            for h in six.moves.range(0,l):
-                for w in six.moves.range(0,l):
-                    pic[h][w] = (pic[h][w] > 0)
-            data[i][0] = pic
-            l = int(f.split('-')[0])
-            label[i] = l
-            i +=1
+
+x_train = i2n.convert_from_file('./data/new/faxocr-training-48_train_images.idx3')
+y_train = i2n.convert_from_file('./data/new/faxocr-training-48_train_labels.idx1').astype('int32')
+
+x_test = i2n.convert_from_file('./data/new/faxocr-mustread-48_train_images.idx3')
+y_test = i2n.convert_from_file('./data/new/faxocr-mustread-48_train_labels.idx1').astype('int32')
+
+print x_train.shape
+def reshape(data):
+    shape = data.shape
+    n_d = np.zeros((shape[0],1,shape[1],shape[2]),dtype="float32")
+    size = shape[0]
+    for i in range(size):
+        n_d[i][0] = data[i]
+    return n_d
+
+x_train = reshape(x_train)
+x_test = reshape(x_test)
 
 
-    return data, label
-
-
-def load_mnist(images, labels, num):
-    data = np.zeros(num * dim, dtype=np.uint8).reshape((num, dim))
-    target = np.zeros(num, dtype=np.uint8).reshape((num, ))
-
-    with gzip.open(images, 'rb') as f_images,\
-            gzip.open(labels, 'rb') as f_labels:
-        f_images.read(16)
-        f_labels.read(8)
-        for i in six.moves.range(num):
-            target[i] = ord(f_labels.read(1))
-            for j in six.moves.range(dim):
-                data[i, j] = ord(f_images.read(1))
-
-    return data, target
-
-x_train, y_train = getData(train_path, train_size, img_size)
-x_test, y_test = getData(test_path, test_size, img_size)
+print transform(x_train[0])
 
 """
 x_train = pca.transform(x_train)
@@ -93,7 +78,7 @@ for epoch in range(1, n_epoch+1):
 
         sum_loss += float(model.loss.data) * len(t.data)
         sum_accuracy += float(model.accuracy.data) * len(t.data)
-
+    print('epoch : {}'.format(epoch))
     print('train mean loss={}, accuracy={}'.format(
         sum_loss / N, sum_accuracy / N))
     # evaluation

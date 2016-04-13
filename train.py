@@ -50,21 +50,21 @@ x_train = reshape(x_train)
 x_test = reshape(x_test)
 
 
-print transform(x_train[0])
-
 """
 x_train = pca.transform(x_train)
 x_test = pca.transform(x_test)
 """
 
-batchsize = 100
-n_epoch = 20
+batchsize = 59
 
+n_epoch = 30
 model = L.Classifier(net.VGG())
 optimizer = optimizers.Adam()
 optimizer.setup(model)
-
-
+"""
+serializers.load_npz("./smlp.model", model)
+serializers.load_npz("./smlp.state", optimizer)
+"""
 for epoch in range(1, n_epoch+1):
     perm = np.random.permutation(N)
     sum_accuracy = 0
@@ -84,18 +84,25 @@ for epoch in range(1, n_epoch+1):
     # evaluation
     sum_accuracy = 0
     sum_loss = 0
-    for i in six.moves.range(0, N_test, batchsize):
-        x = chainer.Variable(xp.asarray(x_test[i:i + batchsize]),
-                             volatile='on')
-        t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]),
-                             volatile='on')
-        model.predictor.train = False
-        loss = model(x, t)
-        sum_loss += float(loss.data) * len(t.data)
-        sum_accuracy += float(model.accuracy.data) * len(t.data)
+    for i in range(0, N_test, 1):
+            x = chainer.Variable(xp.asarray(x_test[i:i+1]),
+                                 volatile='on')
+            t = chainer.Variable(xp.asarray(y_test[i:i + 1]),
+                                 volatile='on')
+            model.predictor.train = False
+            loss = model(x, t)
+            sum_loss += float(loss.data) * len(t.data)
+            sum_accuracy += float(model.accuracy.data) * len(t.data)
+    if sum_accuracy > 224:#epoch 19 made best score
 
+        # Save the model and the optimizer
+        print('save the model')
+        serializers.save_npz(str(epoch)+'mlp.model', model)
+        print('save the optimizer')
+        serializers.save_npz(str(epoch)+'mlp.state', optimizer)
+        sys.exit()
     print('test  mean loss={}, accuracy={}/{}'.format(
-        sum_loss / N_test, math.floor(sum_accuracy) , N_test))
+        sum_loss / N_test, sum_accuracy , N_test))
 
 
 

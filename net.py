@@ -25,15 +25,17 @@ class VGG(chainer.Chain):
         self.train = True
 
     def __call__(self, x):
-        h = self.b0(x)
-        h = self.b1_1(F.elu(self.c1_1(h)))
-        h = self.b1_2(F.elu(self.c1_2(h)))
+        h = self.b0(x,test=not self.train)
+        h = self.b1_1(F.elu(self.c1_1(h)),test=not self.train)
+        h = self.b1_2(F.elu(self.c1_2(h)),test=not self.train)
         h = F.max_pooling_2d(h,2,stride=2)
-        h = self.b2_2(F.elu(self.c2_1(h)))
-        h = self.b2_2(F.elu(self.c2_2(h)))
+        h = self.b2_2(F.elu(self.c2_1(h)),test=not self.train)
+        h = self.b2_2(F.elu(self.c2_2(h)),test=not self.train)
         h = F.max_pooling_2d(h,2,stride=2)
-        h = self.b3_1(F.elu(self.c3_1(h)))
-        h = self.b3_2(F.elu(self.c3_2(h)))
+        h = self.b3_1(F.elu(self.c3_1(h)),test=not self.train)
+        h = self.b3_2(F.elu(self.c3_2(h)),test=not self.train)
         h = F.max_pooling_2d(h,2,stride=2)
+        #print h.data
         h = F.dropout(F.elu(self.f1(h)),train=self.train)
+        #print h.data
         return self.f2(h)

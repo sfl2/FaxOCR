@@ -62,60 +62,39 @@ model = L.Classifier(net.VGG())
 serializers.load_npz("./cnn.model", model)
 #serializers.load_npz("./cnn.state", optimizer)
 
-"""
-sum_accuracy = 0
-sum_loss = 0
+
+batchsize = 1
+
+sum_accuracy = 0.0
 for i in range(0, N_test, batchsize):
-        x = chainer.Variable(xp.asarray(x_test[i:i + batchsize]),
-                             volatile='on')
-        t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]),
-                             volatile='on')
-        model.predictor.train = False
-        print "{} : {}".format(i+batchsize,  np.argmax(F.softmax(model.predictor(x)).data))
+    #print "batch first index : {}".format(i)
+    x = chainer.Variable(xp.asarray(x_test[i:i + batchsize]),
+                         volatile='on')
+    t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]),
+                         volatile='on')
+    model.predictor.train = False
+
+    #print "{} : {}".format(i,  model.predictor(x).data.reshape(len(t.data),-1))
+    #print t.data
+
+    for j in range(len(t.data)):
+
+        if np.argmax(model.predictor(x).data.reshape(batchsize,10,-1)[j]) == t.data[j]:
+            continue
+        print "{} : {}, {}".format(i+j,  np.argmax(model.predictor(x).data.reshape(len(t.data),-1)[j]),t.data[j])
+
+        for h in range(img_size):
+            for w in range(img_size):
+                if x_test[i+j][0][h][w]>0:
+                    print 1,
+                else :
+                    print " ",
+            print
+
+    loss = model(x, t)
+    sum_accuracy += float(model.accuracy.data) * len(t.data)
+    #print model.accuracy.data
+    #print len(t.data)
 
 
-        loss = model(x, t)
-        sum_loss += float(loss.data) * len(t.data)
-        sum_accuracy += float(model.accuracy.data) * len(t.data)
-
-        print "{} : {}".format((i+1)*batchsize,sum_accuracy)
-        print model.accuracy.data
-
-"""
-
-for batchsize in range(1,2):#
-    print "hoge"
-
-    sum_accuracy = 0.0
-    for i in range(0, N_test, batchsize):
-        #print "batch first index : {}".format(i)
-        x = chainer.Variable(xp.asarray(x_test[i:i + batchsize]),
-                             volatile='on')
-        t = chainer.Variable(xp.asarray(y_test[i:i + batchsize]),
-                             volatile='on')
-        model.predictor.train = False
-
-        #print "{} : {}".format(i,  model.predictor(x).data.reshape(len(t.data),-1))
-        #print t.data
-
-        for j in range(len(t.data)):
-
-            if np.argmax(model.predictor(x).data.reshape(batchsize,10,-1)[j]) == t.data[j]:
-                continue
-            print "{} : {}, {}".format(i+j,  np.argmax(model.predictor(x).data.reshape(len(t.data),-1)[j]),t.data[j])
-
-            for h in range(img_size):
-                for w in range(img_size):
-                    if x_test[i+j][0][h][w]>0:
-                        print 1,
-                    else :
-                        print " ",
-                print
-
-        loss = model(x, t)
-        sum_accuracy += float(model.accuracy.data) * len(t.data)
-        #print model.accuracy.data
-        #print len(t.data)
-
-
-        print('accuracy={}/{}'.format(sum_accuracy , N_test))
+    print('accuracy={}/{}'.format(sum_accuracy , N_test))

@@ -93,7 +93,7 @@ for epoch in range(1, n_epoch+1):
             loss = model(x, t)
             sum_loss += float(loss.data) * len(t.data)
             sum_accuracy += float(model.accuracy.data) * len(t.data)
-    if sum_accuracy > 224:#epoch 19 made best score
+    if sum_accuracy > 224:#epoch 19 made the best score(cnn.model)
 
         # Save the model and the optimizer
         print('save the model')

@@ -2,11 +2,11 @@ FaxOCR
 
 download faxocr-numbers-20160410.zip from
 https://sites.google.com/site/faxocr2010/systemrequirements/kocr/mnist
-unzip it, and put it on "./data" directory
+unzip, and put it on "./data" directory
 
 
 accuracy
-226/249 on testdata (mustread-48) experiment
+233/249(0.935) on testdata (mustread-48) 
 
 
 method
